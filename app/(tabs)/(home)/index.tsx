@@ -9,13 +9,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
-  ImageSourcePropType
+  ImageSourcePropType,
+  Platform
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import { colors } from "@/styles/commonStyles";
 import { IconSymbol } from "@/components/IconSymbol";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
 
 const BACKEND_URL: string =
   (Constants.expoConfig?.extra?.backendUrl as string) ||
@@ -114,16 +116,29 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={['rgba(99, 102, 241, 0.15)', 'rgba(139, 92, 246, 0.1)', 'transparent']}
+        style={styles.headerGradient}
+      />
+      
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hackathons</Text>
-        <Text style={styles.headerSubtitle}>Discover amazing coding events</Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Hackathons</Text>
+          <Text style={styles.headerSubtitle}>Discover amazing coding events</Text>
+        </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statBadge}>
+            <Text style={styles.statNumber}>{hackathons.length}</Text>
+            <Text style={styles.statLabel}>Events</Text>
+          </View>
+        </View>
       </View>
 
       {error && (
         <View style={styles.errorBanner}>
           <IconSymbol
             android_material_icon_name="error-outline"
-            size={18}
+            size={20}
             color={colors.accent}
           />
           <Text style={styles.errorBannerText}>{error}</Text>
@@ -140,14 +155,17 @@ export default function HomeScreen() {
             tintColor={colors.primary}
           />
         }
+        showsVerticalScrollIndicator={false}
       >
         {hackathons.length === 0 && !error && (
           <View style={styles.emptyState}>
-            <IconSymbol
-              android_material_icon_name="event"
-              size={48}
-              color={colors.textSecondary}
-            />
+            <View style={styles.emptyIconContainer}>
+              <IconSymbol
+                android_material_icon_name="event"
+                size={56}
+                color={colors.primary}
+              />
+            </View>
             <Text style={styles.emptyStateText}>No hackathons found</Text>
             <Text style={styles.emptyStateSubtext}>Pull down to refresh</Text>
           </View>
@@ -156,65 +174,84 @@ export default function HomeScreen() {
           const startDateFormatted = formatDate(hackathon.startDate);
           const endDateFormatted = formatDate(hackathon.endDate);
           const dateRange = `${startDateFormatted} - ${endDateFormatted}`;
-          const participantsText = `${hackathon.participants} participants`;
+          const participantsText = `${hackathon.participants}`;
 
           return (
             <TouchableOpacity
               key={index}
               style={styles.card}
               onPress={() => handleHackathonPress(hackathon)}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              {hackathon.imageUrl && (
-                <Image
-                  source={resolveImageSource(hackathon.imageUrl)}
-                  style={styles.cardImage}
-                />
-              )}
-              
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{hackathon.name}</Text>
-                <Text style={styles.cardDescription} numberOfLines={2}>
-                  {hackathon.description}
-                </Text>
-
-                <View style={styles.cardDetails}>
-                  <View style={styles.detailRow}>
-                    <IconSymbol
-                      android_material_icon_name="location-on"
-                      size={16}
-                      color={colors.textSecondary}
+              <View style={styles.cardInner}>
+                {hackathon.imageUrl && (
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={resolveImageSource(hackathon.imageUrl)}
+                      style={styles.cardImage}
                     />
-                    <Text style={styles.detailText}>{hackathon.location}</Text>
+                    <LinearGradient
+                      colors={['transparent', 'rgba(15, 23, 42, 0.9)']}
+                      style={styles.imageOverlay}
+                    />
+                  </View>
+                )}
+                
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle} numberOfLines={2}>
+                      {hackathon.name}
+                    </Text>
+                    <View style={styles.prizeTag}>
+                      <IconSymbol
+                        android_material_icon_name="emoji-events"
+                        size={16}
+                        color={colors.accent}
+                      />
+                      <Text style={styles.prizeTagText}>{hackathon.prize}</Text>
+                    </View>
                   </View>
 
-                  <View style={styles.detailRow}>
-                    <IconSymbol
-                      android_material_icon_name="calendar-today"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text style={styles.detailText}>{dateRange}</Text>
-                  </View>
+                  <Text style={styles.cardDescription} numberOfLines={2}>
+                    {hackathon.description}
+                  </Text>
 
-                  <View style={styles.detailRow}>
-                    <IconSymbol
-                      android_material_icon_name="group"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text style={styles.detailText}>{participantsText}</Text>
+                  <View style={styles.cardFooter}>
+                    <View style={styles.infoChip}>
+                      <IconSymbol
+                        android_material_icon_name="location-on"
+                        size={14}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.infoChipText}>{hackathon.location}</Text>
+                    </View>
+
+                    <View style={styles.infoChip}>
+                      <IconSymbol
+                        android_material_icon_name="calendar-today"
+                        size={14}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.infoChipText}>{dateRange}</Text>
+                    </View>
+
+                    <View style={styles.infoChip}>
+                      <IconSymbol
+                        android_material_icon_name="group"
+                        size={14}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.infoChipText}>{participantsText}</Text>
+                    </View>
                   </View>
                 </View>
 
-                <View style={styles.prizeContainer}>
+                <View style={styles.cardArrow}>
                   <IconSymbol
-                    android_material_icon_name="emoji-events"
+                    android_material_icon_name="arrow-forward"
                     size={20}
-                    color={colors.accent}
+                    color={colors.textSecondary}
                   />
-                  <Text style={styles.prizeText}>{hackathon.prize}</Text>
-                  <Text style={styles.prizeLabel}>Prize Pool</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -229,49 +266,141 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+  },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 60 : 70,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '800',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  statsContainer: {
+    marginTop: 4,
+  },
+  statBadge: {
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.3)',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+    textTransform: 'uppercase',
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingHorizontal: 24,
+    paddingBottom: 120,
   },
   card: {
+    marginBottom: 20,
+    borderRadius: 20,
     backgroundColor: colors.card,
-    borderRadius: 16,
-    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.4)',
+      },
+    }),
+  },
+  cardInner: {
     overflow: 'hidden',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.2)',
   },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200,
+  },
   cardImage: {
     width: '100%',
-    height: 180,
+    height: '100%',
     backgroundColor: colors.backgroundAlt,
   },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+  },
   cardContent: {
-    padding: 16,
+    padding: 20,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    gap: 12,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    flex: 1,
+    lineHeight: 28,
+  },
+  prizeTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(236, 72, 153, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(236, 72, 153, 0.3)',
+  },
+  prizeTagText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.accent,
   },
   cardDescription: {
     fontSize: 14,
@@ -279,78 +408,86 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
   },
-  cardDetails: {
+  cardFooter: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 16,
   },
-  detailRow: {
+  infoChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
   },
-  detailText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  prizeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  prizeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.accent,
-    flex: 1,
-  },
-  prizeLabel: {
+  infoChipText: {
     fontSize: 12,
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
+    color: colors.text,
+    fontWeight: '600',
+  },
+  cardArrow: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: 16,
+    fontSize: 15,
     color: colors.textSecondary,
+    fontWeight: '500',
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-    marginHorizontal: 20,
-    marginBottom: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    gap: 8,
+    backgroundColor: 'rgba(236, 72, 153, 0.15)',
+    marginHorizontal: 24,
+    marginBottom: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    gap: 10,
     borderWidth: 1,
     borderColor: 'rgba(236, 72, 153, 0.3)',
   },
   errorBannerText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.accent,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 60,
-    gap: 12,
+    paddingVertical: 80,
+    gap: 16,
+  },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.text,
   },
   emptyStateSubtext: {
-    fontSize: 14,
+    fontSize: 15,
     color: colors.textSecondary,
   },
 });

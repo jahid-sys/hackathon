@@ -15,6 +15,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { colors } from "@/styles/commonStyles";
 import { IconSymbol } from "@/components/IconSymbol";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
 const BACKEND_URL: string =
   (Constants.expoConfig?.extra?.backendUrl as string) ||
@@ -108,10 +110,14 @@ export default function HackathonDetailScreen() {
             title: 'Loading...',
             headerStyle: { backgroundColor: colors.background },
             headerTintColor: colors.text,
-            headerBackTitle: 'Back'
+            headerBackTitle: 'Back',
+            headerTransparent: true,
           }}
         />
-        <ActivityIndicator size="large" color={colors.primary} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading details...</Text>
+        </View>
       </View>
     );
   }
@@ -128,12 +134,14 @@ export default function HackathonDetailScreen() {
             headerBackTitle: 'Back'
           }}
         />
-        <IconSymbol
-          ios_icon_name="exclamationmark.triangle.fill"
-          android_material_icon_name="error-outline"
-          size={48}
-          color={colors.accent}
-        />
+        <View style={styles.errorIconContainer}>
+          <IconSymbol
+            ios_icon_name="exclamationmark.triangle.fill"
+            android_material_icon_name="error-outline"
+            size={56}
+            color={colors.accent}
+          />
+        </View>
         <Text style={styles.errorText}>
           {error || 'Hackathon not found'}
         </Text>
@@ -153,38 +161,55 @@ export default function HackathonDetailScreen() {
 
   const startDateFormatted = formatDate(hackathon.startDate);
   const endDateFormatted = formatDate(hackathon.endDate);
-  const participantsText = `${hackathon.participants} participants`;
+  const participantsText = `${hackathon.participants}`;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           headerShown: true,
-          title: hackathon.name,
-          headerStyle: { backgroundColor: colors.background },
+          title: '',
+          headerStyle: { backgroundColor: 'transparent' },
           headerTintColor: colors.text,
-          headerBackTitle: 'Back'
+          headerBackTitle: 'Back',
+          headerTransparent: true,
         }}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {hackathon.imageUrl && (
-          <Image
-            source={resolveImageSource(hackathon.imageUrl)}
-            style={styles.heroImage}
-          />
+          <View style={styles.heroContainer}>
+            <Image
+              source={resolveImageSource(hackathon.imageUrl)}
+              style={styles.heroImage}
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(15, 23, 42, 0.8)', colors.background]}
+              style={styles.heroGradient}
+            />
+          </View>
         )}
 
         <View style={styles.content}>
           <Text style={styles.title}>{hackathon.name}</Text>
 
           <View style={styles.prizeCard}>
-            <IconSymbol
-              ios_icon_name="trophy.fill"
-              android_material_icon_name="emoji-events"
-              size={32}
-              color={colors.accent}
+            <LinearGradient
+              colors={['rgba(236, 72, 153, 0.2)', 'rgba(236, 72, 153, 0.1)']}
+              style={styles.prizeGradient}
             />
+            <View style={styles.prizeIconContainer}>
+              <IconSymbol
+                ios_icon_name="trophy.fill"
+                android_material_icon_name="emoji-events"
+                size={40}
+                color={colors.accent}
+              />
+            </View>
             <View style={styles.prizeInfo}>
               <Text style={styles.prizeAmount}>{hackathon.prize}</Text>
               <Text style={styles.prizeLabel}>Total Prize Pool</Text>
@@ -192,81 +217,147 @@ export default function HackathonDetailScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIconContainer}>
+                <IconSymbol
+                  ios_icon_name="doc.text.fill"
+                  android_material_icon_name="description"
+                  size={20}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.sectionTitle}>About</Text>
+            </View>
             <Text style={styles.description}>{hackathon.description}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Details</Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIconContainer}>
+                <IconSymbol
+                  ios_icon_name="info.circle.fill"
+                  android_material_icon_name="info"
+                  size={20}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.sectionTitle}>Details</Text>
+            </View>
             
-            <View style={styles.detailCard}>
-              <IconSymbol
-                ios_icon_name="calendar"
-                android_material_icon_name="calendar-today"
-                size={24}
-                color={colors.primary}
-              />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Start Date</Text>
-                <Text style={styles.detailValue}>{startDateFormatted}</Text>
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailCard}>
+                <View style={styles.detailIconContainer}>
+                  <IconSymbol
+                    ios_icon_name="calendar"
+                    android_material_icon_name="calendar-today"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Start Date</Text>
+                  <Text style={styles.detailValue}>{startDateFormatted}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.detailCard}>
-              <IconSymbol
-                ios_icon_name="calendar"
-                android_material_icon_name="calendar-today"
-                size={24}
-                color={colors.primary}
-              />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>End Date</Text>
-                <Text style={styles.detailValue}>{endDateFormatted}</Text>
+              <View style={styles.detailCard}>
+                <View style={styles.detailIconContainer}>
+                  <IconSymbol
+                    ios_icon_name="calendar.badge.clock"
+                    android_material_icon_name="event"
+                    size={24}
+                    color={colors.secondary}
+                  />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>End Date</Text>
+                  <Text style={styles.detailValue}>{endDateFormatted}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.detailCard}>
-              <IconSymbol
-                ios_icon_name="location.fill"
-                android_material_icon_name="location-on"
-                size={24}
-                color={colors.primary}
-              />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Location</Text>
-                <Text style={styles.detailValue}>{hackathon.location}</Text>
+              <View style={styles.detailCard}>
+                <View style={styles.detailIconContainer}>
+                  <IconSymbol
+                    ios_icon_name="location.fill"
+                    android_material_icon_name="location-on"
+                    size={24}
+                    color={colors.highlight}
+                  />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Location</Text>
+                  <Text style={styles.detailValue}>{hackathon.location}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.detailCard}>
-              <IconSymbol
-                ios_icon_name="person.3.fill"
-                android_material_icon_name="group"
-                size={24}
-                color={colors.primary}
-              />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Participants</Text>
-                <Text style={styles.detailValue}>{participantsText}</Text>
+              <View style={styles.detailCard}>
+                <View style={styles.detailIconContainer}>
+                  <IconSymbol
+                    ios_icon_name="person.3.fill"
+                    android_material_icon_name="group"
+                    size={24}
+                    color={colors.success}
+                  />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Participants</Text>
+                  <Text style={styles.detailValue}>{participantsText}</Text>
+                </View>
               </View>
             </View>
           </View>
-
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.registerButtonText}>Register Now</Text>
-            <IconSymbol
-              ios_icon_name="arrow.right"
-              android_material_icon_name="arrow-forward"
-              size={20}
-              color={colors.text}
-            />
-          </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <View style={styles.bottomBar}>
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[colors.primary, colors.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.registerGradient}
+              >
+                <Text style={styles.registerButtonText}>Register Now</Text>
+                <IconSymbol
+                  ios_icon_name="arrow.right"
+                  android_material_icon_name="arrow-forward"
+                  size={20}
+                  color={colors.text}
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+          </BlurView>
+        ) : (
+          <View style={styles.bottomBarFallback}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[colors.primary, colors.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.registerGradient}
+              >
+                <Text style={styles.registerButtonText}>Register Now</Text>
+                <IconSymbol
+                  ios_icon_name="arrow.right"
+                  android_material_icon_name="arrow-forward"
+                  size={20}
+                  color={colors.text}
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -279,71 +370,139 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 120,
+  },
+  heroContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 350,
   },
   heroImage: {
     width: '100%',
-    height: 250,
+    height: '100%',
     backgroundColor: colors.backgroundAlt,
   },
+  heroGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+  },
   content: {
-    padding: 20,
+    padding: 24,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '800',
     color: colors.text,
-    marginBottom: 20,
+    marginBottom: 24,
+    lineHeight: 40,
+    letterSpacing: -0.5,
   },
   prizeCard: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-    gap: 16,
+    backgroundColor: colors.card,
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 32,
+    gap: 20,
     borderWidth: 1,
     borderColor: 'rgba(236, 72, 153, 0.3)',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.accent,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  prizeGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  prizeIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(236, 72, 153, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   prizeInfo: {
     flex: 1,
   },
   prizeAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '800',
     color: colors.accent,
     marginBottom: 4,
   },
   prizeLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
     textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  sectionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: colors.text,
-    marginBottom: 12,
   },
   description: {
     fontSize: 16,
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 26,
+    fontWeight: '400',
+  },
+  detailsGrid: {
+    gap: 12,
   },
   detailCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    padding: 18,
+    borderRadius: 16,
     gap: 16,
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  detailIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   detailContent: {
     flex: 1,
@@ -353,27 +512,80 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 4,
     textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   detailValue: {
     fontSize: 16,
     color: colors.text,
     fontWeight: '600',
   },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  blurContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 24,
+  },
+  bottomBarFallback: {
+    backgroundColor: colors.card,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 24,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(99, 102, 241, 0.2)',
+  },
   registerButton: {
-    backgroundColor: colors.primary,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  registerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 8,
-    gap: 8,
+    gap: 10,
   },
   registerButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: colors.text,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  errorIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   errorText: {
     fontSize: 16,
@@ -387,15 +599,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButton: {
-    marginTop: 20,
+    marginTop: 24,
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 14,
   },
   retryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
   },
 });
