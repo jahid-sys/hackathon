@@ -364,7 +364,3 @@ export const setupErrorLogging = () => {
 if (__DEV__) {
   setupErrorLogging();
 }
-
-// ============================================================
-// NOTE: API utilities are in utils/api.ts
-// ============================================================
